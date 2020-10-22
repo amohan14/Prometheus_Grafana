@@ -2,9 +2,6 @@
 install_nginx() {
     sudo apt-get update -y 
     sudo apt-get install nginx -y
-    sudo ufw app list
-    sudo ufw allow 'Nginx HTTP'
-    sudo ufw enable
 }
 
 install_prometheus() {
