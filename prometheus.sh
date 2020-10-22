@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 install_nginx() {
+    cd ~
     sudo apt-get update -y 
     sudo apt-get install nginx -y
 }
@@ -108,9 +109,9 @@ install_grafana() {
     wget https://dl.grafana.com/oss/release/grafana_7.2.2_amd64.deb
     sudo dpkg -i grafana_7.2.2_amd64.deb
     # Configure grafana server
-    sudo systemctl daemon-reload
-    sudo systemctl enable grafana-server.service
-    sudo systemctl start grafana-server
+    sudo /bin/systemctl daemon-reload
+    sudo /bin/systemctl enable grafana-server.service
+    sudo /bin/systemctl start grafana-server
       
 }
 
