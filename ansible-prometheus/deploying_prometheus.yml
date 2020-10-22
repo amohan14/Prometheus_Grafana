@@ -1,0 +1,141 @@
+---
+- name: Automating deployment of Prometheus on EC2
+  hosts: local
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: Launch EC2 Ubuntu Instanceinstance
+      ec2:
+         key_name: ansible
+         group: ansible-node
+         instance_type: t2.micro
+         image: ami-0dba2cb6798deb6d8 #Ubuntu
+         wait: true
+         region: us-east-1
+         # aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+         # aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+      register: ec2
+
+    - name: Print all ec2 variables
+      debug: 
+          var: ec2
+    
+    - name: Get the Ip address
+      debug: 
+          var: ec2.instances[0].public_dns_name
+
+    - name: add host to group 'just_created' with variable foo=42
+      add_host:
+        name: "{{ ec2.instances[0].public_dns_name }}"
+        groups: ec2_hosts
+        ansible_host: "{{ ec2.instances[0].public_dns_name }}"
+        ansible_ssh_user: ubuntu # as per AMI
+        ansible_ssh_private_key_file: /vagrant_data/ansible.pem
+    
+    - name: Wait for a while
+      pause: seconds=60
+
+
+- name: Install servers into ec2 hosts
+  hosts: ec2_hosts
+  become: yes
+  tasks:
+    - name: Installing nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes 
+
+    - name: add user prometheus 
+      user:
+        name: prometheus
+        shell: /bin/false
+        create_home: no
+
+    - name: add user node_exporter
+      user:
+        name: node_exporter
+        shell: /bin/false
+        create_home: no 
+
+    - name: making prometheus dir under /etc
+      file:
+        path : /etc/prometheus
+        state: directory
+        owner: prometheus
+        group: prometheus
+
+    - name: making prometheus dir under /var/lib
+      file:
+        path : /var/lib/prometheus
+        state: directory
+        owner: prometheus
+        group: prometheus 
+
+        
+    - name: Unarchive a prometheus-2.22.0.linux-amd64 to be downloaded
+      unarchive:
+        src: https://github.com/prometheus/prometheus/releases/download/v2.22.0/prometheus-2.22.0.linux-amd64.tar.gz
+        dest: /home/ubuntu
+        remote_src: yes 
+
+    - name: copying prometheus-2.22.0.linux-amd64/prometheus to /usr/local/bin/ with permissions
+      copy:
+        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/prometheus
+        dest: /usr/local/bin/
+        owner: prometheus
+        group: prometheus
+        remote_src: yes
+        mode: '0755'
+
+    - name: copying prometheus-2.22.0.linux-amd64/promtool to /usr/local/bin/ with permissions
+      copy:
+        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/promtool
+        dest: /usr/local/bin/
+        owner: prometheus
+        group: prometheus
+        remote_src: yes
+        mode: '0755'
+    
+    - name: copying prometheus-2.22.0.linux-amd64/consoles to /etc/prometheus with permissions
+      copy:
+        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/consoles 
+        dest: /etc/prometheus
+        owner: prometheus
+        group: prometheus
+        remote_src: yes
+        mode: '0755'
+
+    - name: copying prometheus-2.22.0.linux-amd64/console_libraries to /etc/prometheus with permissions
+      copy:
+        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/console_libraries
+        dest: /etc/prometheus
+        owner: prometheus
+        group: prometheus
+        remote_src: yes
+        mode: '0755'
+    
+    - name: Recursively remove directory
+      file:
+        path: /home/ubuntuprometheus-2.22.0.linux-amd64.tar.gz
+        state: absent
+    
+    - name: Recursively remove directory
+      file:
+        path: /home/ubuntu/prometheus-2.22.0.linux-amd64
+        state: absent    
+
+    - name: git repo
+      git:
+        repo: 
+        clone: yes
+        dest: /home/ubuntu
+    - name: copying prometheus.yml to destination
+      copy:
+        src: /home/ubuntu/ansible_prometheus/roles/prometheus/files/prometheus.yml
+        dest: /home/ubuntu/etc/prometheus/prometheus.yml
+        owner: prometheus
+        group: prometheus
+        remote_src: yes
+        mode: '0755'
+    
