@@ -1,0 +1,13 @@
+---
+- name: creating empty folder for git
+  file:
+    path : /home/ubuntu/Prometheus_Grafana
+    state: directory
+    owner: root
+    group: root
+
+- name: git repo
+  git:
+    repo: https://github.com/amohan14/Prometheus_Grafana.git
+    clone: yes
+    dest: /home/ubuntu/Prometheus_Grafana

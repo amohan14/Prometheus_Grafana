@@ -4,7 +4,7 @@
   connection: local
   gather_facts: False
   tasks:
-    - name: Launch EC2 Ubuntu Instanceinstance
+    - name: Launch EC2 Ubuntu Instance
       ec2:
          key_name: ansible
          group: ansible-node
@@ -39,103 +39,9 @@
 - name: Install servers into ec2 hosts
   hosts: ec2_hosts
   become: yes
-  tasks:
-    - name: Installing nginx
-      apt:
-        name: nginx
-        state: present
-        update_cache: yes 
-
-    - name: add user prometheus 
-      user:
-        name: prometheus
-        shell: /bin/false
-        create_home: no
-
-    - name: add user node_exporter
-      user:
-        name: node_exporter
-        shell: /bin/false
-        create_home: no 
-
-    - name: making prometheus dir under /etc
-      file:
-        path : /etc/prometheus
-        state: directory
-        owner: prometheus
-        group: prometheus
-
-    - name: making prometheus dir under /var/lib
-      file:
-        path : /var/lib/prometheus
-        state: directory
-        owner: prometheus
-        group: prometheus 
-
-        
-    - name: Unarchive a prometheus-2.22.0.linux-amd64 to be downloaded
-      unarchive:
-        src: https://github.com/prometheus/prometheus/releases/download/v2.22.0/prometheus-2.22.0.linux-amd64.tar.gz
-        dest: /home/ubuntu
-        remote_src: yes 
-
-    - name: copying prometheus-2.22.0.linux-amd64/prometheus to /usr/local/bin/ with permissions
-      copy:
-        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/prometheus
-        dest: /usr/local/bin/
-        owner: prometheus
-        group: prometheus
-        remote_src: yes
-        mode: '0755'
-
-    - name: copying prometheus-2.22.0.linux-amd64/promtool to /usr/local/bin/ with permissions
-      copy:
-        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/promtool
-        dest: /usr/local/bin/
-        owner: prometheus
-        group: prometheus
-        remote_src: yes
-        mode: '0755'
-    
-    - name: copying prometheus-2.22.0.linux-amd64/consoles to /etc/prometheus with permissions
-      copy:
-        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/consoles 
-        dest: /etc/prometheus
-        owner: prometheus
-        group: prometheus
-        remote_src: yes
-        mode: '0755'
-
-    - name: copying prometheus-2.22.0.linux-amd64/console_libraries to /etc/prometheus with permissions
-      copy:
-        src: /home/ubuntu/prometheus-2.22.0.linux-amd64/console_libraries
-        dest: /etc/prometheus
-        owner: prometheus
-        group: prometheus
-        remote_src: yes
-        mode: '0755'
-    
-    - name: Recursively remove directory
-      file:
-        path: /home/ubuntuprometheus-2.22.0.linux-amd64.tar.gz
-        state: absent
-    
-    - name: Recursively remove directory
-      file:
-        path: /home/ubuntu/prometheus-2.22.0.linux-amd64
-        state: absent    
-
-    - name: git repo
-      git:
-        repo: 
-        clone: yes
-        dest: /home/ubuntu
-    - name: copying prometheus.yml to destination
-      copy:
-        src: /home/ubuntu/ansible_prometheus/roles/prometheus/files/prometheus.yml
-        dest: /home/ubuntu/etc/prometheus/prometheus.yml
-        owner: prometheus
-        group: prometheus
-        remote_src: yes
-        mode: '0755'
-    
+  roles:
+    - nginx
+    - git_repo
+    - prometheus
+    - node_exporter
+    - grafana

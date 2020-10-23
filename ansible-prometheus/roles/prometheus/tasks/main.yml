@@ -1,0 +1,98 @@
+---
+- name: add user prometheus 
+  user:
+    name: prometheus
+    shell: /bin/false
+    create_home: no
+
+- name: create prometheus dir under /etc
+  file:
+    path : /etc/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus
+
+- name: create prometheus dir under /var/lib
+  file:
+    path : /var/lib/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus 
+
+    
+- name: unarchive prometheus-2.22.0.linux-amd64.tar.gz
+  unarchive:
+    src: https://github.com/prometheus/prometheus/releases/download/v2.22.0/prometheus-2.22.0.linux-amd64.tar.gz
+    dest: /home/ubuntu
+    remote_src: yes 
+
+- name: copying prometheus-2.22.0.linux-amd64/prometheus to /usr/local/bin/ with permissions
+  copy:
+    src: /home/ubuntu/prometheus-2.22.0.linux-amd64/prometheus
+    dest: /usr/local/bin/
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+
+- name: copying prometheus-2.22.0.linux-amd64/promtool to /usr/local/bin/ with permissions
+  copy:
+    src: /home/ubuntu/prometheus-2.22.0.linux-amd64/promtool
+    dest: /usr/local/bin/
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+
+- name: copying prometheus-2.22.0.linux-amd64/consoles to /etc/prometheus with permissions
+  copy:
+    src: /home/ubuntu/prometheus-2.22.0.linux-amd64/consoles 
+    dest: /etc/prometheus
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+
+- name: copying prometheus-2.22.0.linux-amd64/console_libraries to /etc/prometheus with permissions
+  copy:
+    src: /home/ubuntu/prometheus-2.22.0.linux-amd64/console_libraries
+    dest: /etc/prometheus
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+
+- name: recursively remove directory
+  file:
+    path: /home/ubuntu/prometheus-2.22.0.linux-amd64.tar.gz
+    state: absent
+
+- name: recursively remove directory
+  file:
+    path: /home/ubuntu/prometheus-2.22.0.linux-amd64
+    state: absent    
+
+- name: copying prometheus.yml to destination
+  copy:
+    src: /home/ubuntu/Prometheus_Grafana/ansible-prometheus/roles/prometheus/files/prometheus.yml
+    dest: /etc/prometheus/
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+
+- name: copying prometheues.service to destination
+  copy:
+    src: /home/ubuntu/Prometheus_Grafana/ansible-prometheus/roles/prometheus/files/prometheus.service
+    dest: /etc/systemd/system/
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+    
+- name: reload daemon and making sure prometheus service is running
+  systemd:
+    state: started
+    name: prometheus
+    daemon_reload: yes
+    enabled: yes

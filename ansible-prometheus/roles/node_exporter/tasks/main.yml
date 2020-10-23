@@ -1,0 +1,61 @@
+---
+- name: add user node_exporter
+  user:
+    name: node_exporter
+    shell: /bin/false
+    create_home: no 
+
+- name: unarchieve node_exporter-1.0.1.linux-amd64.tar.gz
+  unarchive:
+    src: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
+    dest: /home/ubuntu
+    remote_src: yes
+
+- name: copying node_exporter to destination
+  copy:
+    src: /home/ubuntu/node_exporter-1.0.1.linux-amd64/node_exporter
+    dest: /usr/local/bin
+    owner: node_exporter
+    group: node_exporter
+    remote_src: yes
+    mode: '0755'
+
+- name: recursively remove directory
+  file:
+    path: /home/ubuntu/node_exporter-1.0.1.linux-amd64.tar.gz
+    state: absent
+
+- name: recursively remove directory
+  file:
+    path: /home/ubuntu/node_exporter-1.0.1.linux-amd64
+    state: absent
+
+- name: copying node_exporter.service to destination
+  copy:
+    src: /home/ubuntu/Prometheus_Grafana/ansible-prometheus/roles/node_exporter/files/node_exporter.service
+    dest: /etc/systemd/system/
+    owner: node_exporter
+    group: node_exporter
+    remote_src: yes
+    mode: '0755'
+
+- name: reload daemon and making sure node_exporter service is running
+  systemd:
+    state: started
+    name: node_exporter
+    daemon_reload: yes
+    enabled: yes
+
+- name: copying prometheus.yml with node_exporter config to destination
+  copy:
+    src: /home/ubuntu/Prometheus_Grafana/ansible-prometheus/roles/node_exporter/files/prometheus_ne.yml
+    dest: /etc/prometheus/
+    owner: prometheus
+    group: prometheus
+    remote_src: yes
+    mode: '0755'
+
+- name: reload daemon and making sure node_exporter service is running
+  systemd:
+    state: restarted
+    name: node_exporter
