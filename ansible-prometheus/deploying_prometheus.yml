@@ -37,6 +37,7 @@
 
 - name: Install servers into ec2 hosts
   hosts: all # all host(to pass the terraform host to ansible)
+  connection: local
   become: yes
   roles:
     - nginx
