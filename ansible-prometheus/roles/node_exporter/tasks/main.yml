@@ -59,3 +59,13 @@
   systemd:
     state: restarted
     name: node_exporter
+
+- name: Copy the prometheus_ne.yml tp prometheus.yml file
+  copy:
+    src: /home/ubuntu/Prometheus_Grafana/ansible-prometheus/roles/node_exporter/files/prometheus_ne.yml
+    dest: /etc/prometheus/prometheus.yml
+
+- name: Restart prometheus
+  systemd:
+    name: prometheus
+    state: restarted
